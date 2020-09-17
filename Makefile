@@ -47,9 +47,9 @@ gen-external-asserts:
 # Unit/CI Testing #
 ###################
 build:
-	go build -o /dev/null -tags ${ALL_TAGS} ${SDK_ALL_PKGS}
+	go test -tags ${ALL_TAGS} -run NONE ${SDK_ALL_PKGS}
 
-unit: verify build test-protocols test-services
+unit: verify build test-protocols test-services test-config test-credentials
 	@echo "go test SDK and vendor packages"
 	@go test -tags ${UNIT_TEST_TAGS} ${SDK_ALL_PKGS}
 
@@ -70,12 +70,20 @@ ci-test-generate-validate:
 	if [ "$$gitstatus" != "" ] && [ "$$gitstatus" != "skipping validation" ]; then echo "$$gitstatus"; exit 1; fi
 	git update-index --no-assume-unchanged go.mod go.sum
 
+test-all:
+	./test_submodules.sh `pwd` "go test -tags ${ALL_TAGS} -count 1 ./..."
 
 test-protocols:
 	./test_submodules.sh `pwd`/internal/protocoltest "go test -count 1 -run NONE ./..."
 
 test-services:
 	./test_submodules.sh `pwd`/service "go test -count 1 -run NONE ./..."
+
+test-config:
+	./test_submodules.sh `pwd`/config "go test -count 1 -tags ${ALL_TAGS} ./..."
+
+test-credentials:
+	./test_submodules.sh `pwd`/credentials "go test -count 1 -tags ${ALL_TAGS} ./..."
 
 mod_replace_local:
 	./mod_replace_local_submodules.sh `pwd` `pwd` `pwd`/../smithy-go
